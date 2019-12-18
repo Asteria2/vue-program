@@ -37,7 +37,8 @@
         </li>
       </ul>
     </div>
-    <ele-cart class="cart" :deliveryPrice='seller.deliveryPrice' :minPrice='seller.minPrice' :selectedFoods='selectedFoods'></ele-cart>
+    <ele-cart class="cart" :deliveryPrice='seller.deliveryPrice' :minPrice='seller.minPrice' :selectedFoods='selectedFoods' @handleClear='handleClear'  @removeCount='removeCount' 
+    @addCount='addCount' ></ele-cart>
   </div>
 </template>
 
@@ -91,15 +92,21 @@ const OK=0;
       }
     },
     methods:{
-      removeCount(goodIndex,foodIndex){
-        let food=this.goods.find((good,index)=>{return goodIndex===index}).foods.find((food,index)=>{return foodIndex===index});
+      handleClear(){
+        this.selectedFoods.forEach((selectedFood)=>{
+          return selectedFood.count=0;
+        });
+      },
+      removeCount(food){
+        /* let food=this.goods.find((good,index)=>{return goodIndex===index}).foods.find((food,index)=>{return foodIndex===index}); */
         if(food.count>0){
           food.count--;
         }
       },
-      addCount(goodIndex,foodIndex){
-        let food=this.goods.find((good,index)=>{return goodIndex===index}).foods.find((food,index)=>{return foodIndex===index});
+      addCount(food){
+        /* let food=this.goods.find((good,index)=>{return goodIndex===index}).foods.find((food,index)=>{return foodIndex===index}); */
         if(!food.count){
+          //如果没有count这个属性就给它添加一个
           this.$set(food,'count',1)
         }else{
           food.count++;
@@ -122,7 +129,9 @@ const OK=0;
         })
       },
       _initTops(){
+        //获取右侧食物分类列表中每一项到顶部的高度，组成一个数组
         let liNodes = this.$refs.foodsList.children;
+        //这里拿到的liNodes是HTMLCollection 要将其转换成一个数组
         let top=0;
         let tops=[top];
         Array.from(liNodes).forEach((item)=>{
@@ -138,6 +147,8 @@ const OK=0;
         this.goods=body
       }
       this._initScroll();
+      //在下次 DOM 更新循环结束之后执行延迟回调。
+      //在修改数据之后立即使用这个方法，获取更新后的 DOM
       this.$nextTick(()=>{
         this._initTops();
       })

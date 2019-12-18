@@ -5,11 +5,11 @@ export default [
   },
   {
     path: '/ratings',
-    component: () => import('../pages/ele-ratings.vue')
+    component: () => import('../pages/ele-ratings/ele-ratings.vue')
   },
   {
     path: '/sellers',
-    component: () => import('../pages/ele-seller.vue')
+    component: () => import('../pages/ele-seller/ele-seller.vue')
   },
   {
     path: '/',

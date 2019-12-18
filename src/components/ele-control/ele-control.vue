@@ -7,19 +7,30 @@
 </template>
 
 <script>
+import PubSub from 'pubsub-js'
   export default {
     name:"ele-control",
     props:{
-      food:Object,
-      goodIndex:Number,
-      foodIndex:Number
+      food:{
+        type:Object,
+        require:true
+      },
+      goodIndex:{
+        type:Number,
+        require:false
+      },
+      foodIndex:{
+        type:Number,
+        require:false
+      }
     },
     methods:{
       removeCount(){
-        this.$emit('removeCount',this.goodIndex,this.foodIndex)
+        this.$emit('removeCount',this.food);
       },
-      addCount(){
-        this.$emit('addCount',this.goodIndex,this.foodIndex)
+      addCount(event){
+        this.$emit('addCount',this.food);
+        PubSub.publish('ballAnimation',event.target)
       }
     }
   }

@@ -63,7 +63,7 @@
     .star
       width 15px
       height 15px
-      margin-right 15px
+      margin-right 5px
       &:last-child
         margin-right 0
       &.on
