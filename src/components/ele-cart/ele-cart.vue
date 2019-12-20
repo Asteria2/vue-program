@@ -99,6 +99,13 @@ import {transform} from '@/util'
         this.selectedFoods.forEach((food)=>{
           totalCount+=food.count;
         })
+        /* if(!this.cartScroll){
+          this.cartScroll=new BScroll(this.$refs.cartContent,{
+          click: true
+          });
+        }else{
+          this.cartScroll.refresh();
+        } */
         return totalCount;
       },
       payText(){

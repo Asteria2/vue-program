@@ -1,39 +1,42 @@
 <template>
-  <div class="ratings">
-    <div class="scores">
-      <div class="left">
-        <div class="num">{{seller.score}}</div>
-        <div class="text">综合评分</div>
-        <div class="desc">高于周边商家{{seller.rankRate}}%</div>
-      </div>
-      <div class="right">
-        <div class="taste">
-          <span class="text">商品评价</span>
-          <ele-star class="stars" size='36' :score='seller.foodScore'></ele-star>
-          <span class="score">{{seller.foodScore}}</span>
+  <div class="ratings" ref='ratingsList'>
+    <div>
+      <div class="scores">
+        <div class="left">
+          <div class="num">{{seller.score}}</div>
+          <div class="text">综合评分</div>
+          <div class="desc">高于周边商家{{seller.rankRate}}%</div>
         </div>
-        <div class="server">
-          <span class="text">服务评价</span>
-          <ele-star class="stars" size='36' :score='seller.serviceScore'></ele-star>
-          <span class="score">{{seller.serviceScore}}</span>
-        </div>
-        <div class="arrive">
-          <span class="text">送达时间</span>
-          <span class="time">{{seller.deliveryTime}}分钟</span>
-        </div>
+        <div class="right">
+          <div class="taste">
+            <span class="text">商品评价</span>
+            <ele-star class="stars" size='36' :score='seller.foodScore'></ele-star>
+            <span class="score">{{seller.foodScore}}</span>
+          </div>
+          <div class="server">
+            <span class="text">服务评价</span>
+            <ele-star class="stars" size='36' :score='seller.serviceScore'></ele-star>
+            <span class="score">{{seller.serviceScore}}</span>
+          </div>
+          <div class="arrive">
+            <span class="text">送达时间</span>
+            <span class="time">{{seller.deliveryTime}}分钟</span>
+          </div>
       </div>
-    </div><div class="space"></div>
-    <div class="evaluate">
-      <div class="btns">
-        <span class="all">全部{{ratings.length}}</span>
-        <span class="good"></span>
-        <span class="bad"></span>
-      </div>
-      <div class="title"></div>
-      <div class="content">
-        <ul class="list">
-          <li class="item"></li>
-        </ul>
+      </div><div class="space"></div>
+      <div class="evaluate">
+        <div class="btns">
+          <span class="btn" :class='{active:highAll}' @click='handleAll'>全部{{ratings.length}}</span>
+          <span class="btn" :class='{active:highGood}' @click='handleGood'>满意{{goodCount}}</span>
+          <span class="btn" :class='{active:highBad}' @click='handleBad'>不满意{{badCount}}</span>
+        </div>
+        <div class="title" @click='haveContent=!haveContent'>
+          <i class="icon icon-check_circle" :class='{active:haveContent}'></i>
+          <span class="text">只看有内容的评价</span>
+        </div>
+        <div class="content">
+          <ele-contentList :ratingList='ratingList' :ratings='ratings'></ele-contentList>
+        </div>
       </div>
     </div>
     <!-- <ele-cart :deliveryPrice='seller.deliveryPrice' :minPrice='seller.minPrice'></ele-cart> -->
@@ -41,29 +44,103 @@
 </template>
 
 <script>
+import BScroll from 'better-scroll'
 import star from 'components/ele-star/ele-star.vue'
 import cart from 'components/ele-cart/ele-cart.vue'
+import contentList from 'components/ele-contentList/ele-contentList.vue'
 const OK=0;
   export default {
     name:'ele-ratings',
     props:{
-            seller:Object
+            seller:Object,
+            ratings:Array
         },
     data(){
       return {
-        ratings:[]
+        highAll: true,
+        highGood:false,
+        highBad: false,
+        haveContent:false
+      }
+    },
+    methods:{
+      handleAll(){
+        this.highAll= true;
+        this.highGood=false;
+        this.highBad= false;  
+      },
+      handleGood(){
+        this.highAll= false;
+        this.highGood=true;
+        this.highBad= false;
+      },
+      handleBad(){
+        this.highAll= false;
+        this.highGood=false;
+        this.highBad= true;
+      }
+    },
+    computed:{
+       ratingList(){
+         let ratingList=[];
+           if(this.highBad){
+              ratingList=this.ratings.filter((rating)=>{
+                return rating.rateType===1
+              });
+              if(this.haveContent){
+                ratingList=ratingList.filter((rating)=>{
+                  return rating.text
+                });
+                return ratingList;
+              }else{
+                return ratingList;
+              }
+           }
+           if(this.highGood){
+              ratingList=this.ratings.filter((rating)=>{
+                return rating.rateType===0
+              });
+              if(this.haveContent){
+                ratingList=ratingList.filter((rating)=>{
+                  return rating.text
+                });
+                return ratingList;
+              }else{
+                return ratingList;
+              }
+           }
+           if(this.highAll&&this.haveContent){
+              ratingList=this.ratings.filter((rating)=>{
+                return rating.text
+              });
+              return ratingList;
+           }
+           return this.ratings;
+       },
+      goodCount(){
+        let goodCount=0;
+        if(this.ratings){
+          this.ratings.forEach((rating) => {
+          if(rating.rateType===0){
+            goodCount++;
+          }
+        });
+        }
+        return goodCount;
+      },
+      badCount(){
+        return this.ratings.length&&(this.ratings.length-this.goodCount);
       }
     },
     components:{
       'ele-cart':cart,
-      'ele-star':star
+      'ele-star':star,
+      'ele-contentList':contentList
     },
-    async mounted(){
-      const {errno,body}=await this.$http.ratings.getRatings();
-      if(errno===OK){
-        this.ratings=body
-      }
-      console.log(body)
+    mounted(){
+      const ratingsScroll=new BScroll(this.$refs.ratingsList,{
+        click: true
+      });
     }
   }
 </script>
@@ -71,7 +148,14 @@ const OK=0;
 <style lang="stylus" scoped>
 @import '../../common/stylus/mixin.styl'
 .ratings
+  position absolute
+  left 0
+  right 0
+  top 174px
+  bottom 0
+  overflow hidden
   .scores
+    one-px(rgba(7,17,27,.1))
     display flex
     height 102px
     width 100%
@@ -139,11 +223,45 @@ const OK=0;
           margin 0 12px 
           color rgba(147,153,159,1)
   .space 
+    one-px(rgba(7,17,27,.1))
     width 100%
     height 18px
-    border-bottom 1px solid rgba(7,17,27,.1)
-    border-top 1px solid rgba(7,17,27,.1)
-    background #eee
+    background #F3F5F7
   .evaluate
-    zoom 1
+    .btns
+      width 100%
+      padding 18px
+      one-px(rgba(7,17,27,.2))
+      &::after 
+        width 90%
+      .btn
+        display inline-block
+        padding 8px 12px
+        font-size 12px
+        color #525C64 
+        margin-right 8px
+        background #E9EBEC
+        &.active 
+          color white
+          background rgba(0,160,220,1)
+    .title
+      font-size 0
+      one-px(rgba(7,17,27,.2))
+      padding 18px 0
+      width 100%
+      .icon
+        vertical-align middle
+        margin-left 18px
+        margin-right 4px
+        font-size 20px 
+        color rgba(7,17,27,.4)
+        &.active 
+          color rgba(0,160,220,1)
+      .text 
+        vertical-align middle
+        font-size 12px
+        line-height 12px
+        font-weight 700
+        color rgba(7,17,27,.5)
+        
 </style>

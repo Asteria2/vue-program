@@ -6,7 +6,7 @@
       <router-link to="/ratings">评价</router-link>
       <router-link to="/seller">商家</router-link>
     </div>
-    <router-view :seller='seller'></router-view>
+    <router-view :seller='seller' :ratings='ratings'></router-view>
   </div>
 </template>
 
@@ -17,7 +17,8 @@ export default {
   name: "app",
   data(){
     return {
-      seller:{}
+      seller:{},
+      ratings:[]
     }
   },
   components: {
@@ -27,7 +28,11 @@ export default {
     const data=await this.$http.sellers.getSellers();
     if(data.errno===OK){
       this.seller=data.body
-    }
+    };
+    const {errno,body}=await this.$http.ratings.getRatings();
+      if(errno===OK){
+        this.ratings=body
+      }
   }
 };
 </script>
